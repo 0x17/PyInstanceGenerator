@@ -40,22 +40,40 @@ def generate_instance(config):
 
 
 def generate_instances(config, num_instances):
-    return [generate_instance(config) for i in range(num_instances)]
+    return [generate_instance(config) for _ in range(num_instances)]
 
 
 def persist_instances(instances, out_path, prefix, suffix):
-    ctr = 1
-    for instance in instances:
-        out_fn = out_path + os.sep + prefix + str(ctr) + suffix
-        spit(out_fn, json.dumps(instance, indent=4, sort_keys=True))
-        ctr += 1
+    for ctr in range(len(instances)):
+        out_fn = out_path + os.sep + prefix + str(ctr + 1) + suffix
+        spit(out_fn, json.dumps(instances[ctr], indent=4, sort_keys=True))
+
+
+def args_to_obj(args):
+    return {arg.split('=')[0]: arg.split('=')[1] for arg in args if '=' in arg}
+
+
+def show_usage():
+    print('Missing arguments, expected:')
+    print('python spgenerator.py out_path=SomeDir prefix=instance suffix=.json')
+
+
+def parse_or_default(fn, def_obj):
+    if os.path.isfile(fn):
+        with open(fn, 'r') as fp:
+            return json.load(fp)
+    return def_obj
 
 
 def main(args):
-    config = {'numClasses': (4, 4), 'capacity': (20, 20)}
+    config = parse_or_default('config.json', {'numClasses': (4, 4), 'capacity': (20, 20)})
     instances = generate_instances(config, 3)
     print(json.dumps(instances, indent=4, sort_keys=True))
-    # persist_instances(instances, 'output', 'pinstance', '.json')
+    arg_obj = args_to_obj(args)
+    if all(k in arg_obj for k in ['out_path', 'prefix', 'suffix']):
+        persist_instances(instances, arg_obj['out_path'], arg_obj['prefix'], arg_obj['suffix'])
+    else:
+        show_usage()
 
 
 if __name__ == '__main__':
