@@ -26,3 +26,8 @@ def spit(fn, s):
 def rand_pair_incl(pair):
     lb, ub = pair
     return random.randint(lb, ub)
+
+
+def enforce_directory(path):
+    if not os.path.exists(path):
+        os.mkdir(path)

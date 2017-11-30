@@ -3,7 +3,7 @@ import os
 import random
 from math import floor
 import sys
-from utils import spit, args_to_obj, parse_or_default, rand_pair_incl, val_or_else
+from utils import spit, args_to_obj, parse_or_default, rand_pair_incl, val_or_else, enforce_directory
 
 
 def generate_client(j, num_classes, capacity, revenue_cost_ratio):
@@ -41,16 +41,16 @@ def persist_instances(instances, out_path, prefix, suffix):
 
 
 def show_usage():
-    print('Missing arguments, expected:')
-    print('python spgenerator.py out_path=SomeDir prefix=instance suffix=.json')
+    print('Missing arguments, expected [with optionals]:')
+    print('python spgenerator.py out_path=SomeDir prefix=instance suffix=.json [config=config.json] [num_instances=3]')
 
 
 def main(args):
     arg_obj = args_to_obj(args)
-    config = parse_or_default(val_or_else(arg_obj, 'config', 'config.json'), {'numClasses': (4, 4), 'capacity': (20, 20)})
-    instances = generate_instances(config, val_or_else(arg_obj, 'num_instances', 3))
-    print(json.dumps(instances, indent=4, sort_keys=True))
     if all(k in arg_obj for k in ['out_path', 'prefix', 'suffix']):
+        enforce_directory(arg_obj['out_path'])
+        config = parse_or_default(val_or_else(arg_obj, 'config', 'config.json'),{'numClasses': (4, 4), 'capacity': (20, 20)})
+        instances = generate_instances(config, val_or_else(arg_obj, 'num_instances', 3))
         persist_instances(instances, arg_obj['out_path'], arg_obj['prefix'], arg_obj['suffix'])
     else:
         show_usage()
