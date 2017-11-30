@@ -3,16 +3,7 @@ import os
 import random
 from math import floor
 import sys
-
-
-def spit(fn, s):
-    with open(fn, 'w') as fp:
-        fp.write(s)
-
-
-def rand_pair_incl(pair):
-    lb, ub = pair
-    return random.randint(lb, ub)
+from utils import spit, args_to_obj, parse_or_default, rand_pair_incl, val_or_else
 
 
 def generate_client(j, num_classes, capacity, revenue_cost_ratio):
@@ -49,27 +40,16 @@ def persist_instances(instances, out_path, prefix, suffix):
         spit(out_fn, json.dumps(instances[ctr], indent=4, sort_keys=True))
 
 
-def args_to_obj(args):
-    return {arg.split('=')[0]: arg.split('=')[1] for arg in args if '=' in arg}
-
-
 def show_usage():
     print('Missing arguments, expected:')
     print('python spgenerator.py out_path=SomeDir prefix=instance suffix=.json')
 
 
-def parse_or_default(fn, def_obj):
-    if os.path.isfile(fn):
-        with open(fn, 'r') as fp:
-            return json.load(fp)
-    return def_obj
-
-
 def main(args):
-    config = parse_or_default('config.json', {'numClasses': (4, 4), 'capacity': (20, 20)})
-    instances = generate_instances(config, 3)
-    print(json.dumps(instances, indent=4, sort_keys=True))
     arg_obj = args_to_obj(args)
+    config = parse_or_default(val_or_else(arg_obj, 'config', 'config.json'), {'numClasses': (4, 4), 'capacity': (20, 20)})
+    instances = generate_instances(config, val_or_else(arg_obj, 'num_instances', 3))
+    print(json.dumps(instances, indent=4, sort_keys=True))
     if all(k in arg_obj for k in ['out_path', 'prefix', 'suffix']):
         persist_instances(instances, arg_obj['out_path'], arg_obj['prefix'], arg_obj['suffix'])
     else:
