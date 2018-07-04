@@ -31,3 +31,6 @@ def rand_pair_incl(pair):
 def enforce_directory(path):
     if not os.path.exists(path):
         os.mkdir(path)
+
+
+def twice(v): return v, v
